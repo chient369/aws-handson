@@ -1,0 +1,97 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  lab4-app
+Transform:
+- AWS::Serverless-2016-10-31
+
+Resources:
+ 
+  # This is a Lambda function config associated with the source code: get-users.js
+  getUsers:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/get-users.getUsers
+      Runtime: nodejs16.x
+      Architectures:
+      - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Layers:
+        - !Ref TempConversionDepLayer
+      Description: Lab4 app includes HTTP get method to get all user from a DynamoDB table.
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the UsersTable
+      - DynamoDBCrudPolicy:
+          TableName: !Ref UsersTable
+      Environment:
+        Variables:
+          SAMPLE_TABLE: !Ref UsersTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: GET
+
+
+  # This is a Lambda function config associated with the source code: add-user.js
+  addUser:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: src/handlers/add-user.addUser
+      Runtime: nodejs16.x
+      Architectures:
+      - x86_64
+      MemorySize: 128
+      Timeout: 100
+      Layers:
+        - !Ref TempConversionDepLayer
+      Description: Lab4 includes a HTTP post method to add one item to
+        a DynamoDB table.
+      Policies:
+        # Give Create/Read/Update/Delete Permissions to the USERS
+      - DynamoDBCrudPolicy:
+          TableName: !Ref UsersTable
+      Environment:
+        Variables:
+          SAMPLE_TABLE: !Ref UsersTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /user
+            Method: POST
+
+  # This is Lamba layer includes nodejs dependencies
+  TempConversionDepLayer:
+      Type: AWS::Serverless::LayerVersion
+      Properties:
+          LayerName: lab4app-dependencies
+          Description: Dependencies for sam app [temp-units-conv]
+          ContentUri: dependencies/
+          CompatibleRuntimes:
+            - nodejs6.10
+            - nodejs8.10
+          LicenseInfo: 'MIT'
+          RetentionPolicy: Retain
+
+  # DynamoDB table to store item: {id: &lt;ID&gt;, name: &lt;NAME&gt;}
+  UsersTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      PrimaryKey:
+        Name: PK
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 2
+        WriteCapacityUnits: 2
+
+Outputs:
+  WebEndpoint:
+    Description: API Gateway endpoint URL for Prod stage
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/"
+
+Globals:
+  Function:
+    LoggingConfig:
+      LogFormat: JSON
