@@ -5,7 +5,6 @@ Transform:
 - AWS::Serverless-2016-10-31
 
 Resources:
- 
   # This is a Lambda function config associated with the source code: get-users.js
   getUsers:
     Type: AWS::Serverless::Function
@@ -30,6 +29,7 @@ Resources:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref ApiGatewayApi
             Path: /users
             Method: GET
 
@@ -59,6 +59,7 @@ Resources:
         Api:
           Type: Api
           Properties:
+            RestApiId: !Ref ApiGatewayApi
             Path: /user
             Method: POST
 
@@ -85,11 +86,22 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 2
         WriteCapacityUnits: 2
+  
+  ApiGatewayApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Domain:
+        BasePath: /
+        DomainName: api.chientv.link
+        CertificateArn: arn:aws:acm:us-east-1:992382395927:certificate/d837d62e-e5bd-407c-9e0f-0073c0c68530       
+        Route53:
+          HostedZoneId: Z08872672UKF18XV24ZHM      
 
-Outputs:
-  WebEndpoint:
-    Description: API Gateway endpoint URL for Prod stage
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/"
+# Outputs:
+#   WebEndpoint:
+#     Description: API Gateway endpoint URL for Prod stage
+#     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/"
 
 Globals:
   Function:
