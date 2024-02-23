@@ -29,7 +29,12 @@ exports.addUser = async (event) => {
     
         response = {
             statusCode: 200,
-            body: JSON.stringify(body)
+            headers: {
+                "Access-Control-Allow-Headers" : "Content-Type",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "POST" 
+            },
+            body: JSON.stringify(result)
         };
     } catch (ResourceNotFoundException) {
         response = {
